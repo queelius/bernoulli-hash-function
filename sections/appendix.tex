@@ -1,0 +1,103 @@
+\appendix
+\appendixpage
+\addappheadtotoc
+
+\section{Bit length sampler and PMF derivation}
+\label{sec:appendix}
+
+\begin{algorithm}[ht]
+    \caption{Bit length sampler}
+    \label{alg:sampler}
+    \SetKwProg{func}{function}{$\colon$}{}
+    \KwIn{
+        $m$ is the cardinality of the set (or map) to approximate,
+        $\fprate$ is the false positive rate,
+        $\mu$ is the mean value encoding length.
+    }
+    \KwOut{
+        A random bit length $n$ of an BHF encoding.
+    }
+    \func{\sampler{$m$, $\fprate$, $\mu$}}{
+        Draw a random set $\Set{S}$ of $m$ elements from $\cisb$\;
+        \If{$\mu > 0$}{
+            Assign random values $v_i$ to each $x_i \in \Set{S}$ with mean
+            encoding length $\mu$\;
+        }
+        $(h_k, b) \gets \MakeBHF(\Set{S}, \fprate, 0)$\;
+        \Return $\BL(h_k) + \BL(b) + \mathcal{O}(1)$\;
+    }
+\end{algorithm}
+
+\begin{theorem}[PMF of the random bit length]
+\label{thm:pmf_detailed}
+The random bit length $\RV{N}$ of the salt $b$ has the probability mass
+function
+\begin{equation}
+    \PDF{n \Given m, \fprate, \mu}[\RV{N}]
+    = q^{2^n - 1}\!\left(1 - q^{2^n}\right)\,,
+\end{equation}
+where $q = 1 - p$ and $p$ is the per-trial success probability.
+\end{theorem}
+\begin{proof}
+Each candidate salt is an independent Bernoulli trial with success probability
+$p$.
+The algorithm tests candidates in order of increasing bit length, with $2^n$
+candidates of length $n$.
+
+For $\RV{N} = n$ to occur:
+\begin{enumerate}
+    \item All $2^n - 1$ candidates of length $< n$ must fail.
+    Each fails independently with probability $q = 1 - p$, so the joint
+    failure probability is $q^{2^n - 1}$.
+
+    \item At least one candidate of length $n$ must succeed.
+    All $2^n$ candidates of length $n$ fail with probability $q^{2^n}$, so
+    the complementary probability is $1 - q^{2^n}$.
+\end{enumerate}
+By independence, $\Prob{\RV{N} = n} = q^{2^n - 1}(1 - q^{2^n})$.
+
+\paragraph{Verification that this is a valid PMF.}
+The sum telescopes:
+\begin{align}
+    \sum_{n=0}^{\infty} q^{2^n - 1}(1 - q^{2^n})
+    &= \sum_{n=0}^{\infty} \left(q^{2^n - 1} - q^{2^{n+1} - 1}\right) \\
+    &= (1 - q) + (q - q^3) + (q^3 - q^7) + (q^7 - q^{15}) + \cdots \\
+    &= 1\,.
+\end{align}
+
+\paragraph{Alternative derivation.}
+Since $\RV{N} = \lfloor \log_2 \RV{Q} \rfloor$ where
+$\RV{Q} \sim \geodist(p)$:
+\begin{align}
+    \Prob{\RV{N} = n}
+    &= \Prob{2^n \leq \RV{Q} < 2^{n+1}} \\
+    &= \sum_{j=2^n}^{2^{n+1}-1} p(1-p)^{j-1} \\
+    &= p \cdot \frac{q^{2^n - 1} - q^{2^{n+1} - 1}}{1 - q}
+    = q^{2^n - 1}(1 - q^{2^n})\,.
+\end{align}
+\end{proof}
+
+\begin{theorem}[Expected encoding size]
+\label{thm:expected_size}
+The expected salt bit length is
+\begin{equation}
+    \Expect{\RV{N}} = \sum_{n=1}^{\infty} q^{2^n - 1}
+    = q + q^3 + q^7 + q^{15} + \cdots\,,
+\end{equation}
+where $q = 1 - p$.
+\end{theorem}
+\begin{proof}
+\begin{align}
+    \Expect{\RV{N}}
+    &= \sum_{n=0}^{\infty} n\, q^{2^n - 1}(1 - q^{2^n}) \\
+    &= \sum_{n=0}^{\infty} n\left(q^{2^n - 1} - q^{2^{n+1} - 1}\right)\,.
+\end{align}
+Expanding the first few terms:
+\begin{align}
+    \Expect{\RV{N}}
+    &= 0 \cdot (1 - q) + 1 \cdot (q - q^3)
+        + 2 \cdot (q^3 - q^7) + 3 \cdot (q^7 - q^{15}) + \cdots \\
+    &= q + q^3 + q^7 + q^{15} + \cdots
+    = \sum_{n=1}^{\infty} q^{2^n - 1}\,.
+\end{align}
+\end{proof}

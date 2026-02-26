@@ -1,0 +1,45 @@
+% Glossary entries for the Bernoulli Hash Function paper.
+
+\newglossaryentry{gls-fprate}{
+    name={false positive rate},
+    description={The probability that a negative element tests positive in a Bernoulli set or map, denoted $\fprate$}
+}
+
+\newglossaryentry{gls-fnrate}{
+    name={false negative rate},
+    description={The probability that a positive element tests negative in a Bernoulli set or map, denoted $\fnrate$}
+}
+
+\newglossaryentry{gls-randomoracle}{
+    name={random oracle},
+    description={A theoretical hash function whose output is uniformly distributed over its range for every unique input}
+}
+
+\newglossaryentry{gls-bernoulliset}{
+    name={Bernoulli set},
+    description={An approximate set where each membership test is an independent Bernoulli trial with specified false positive and false negative rates}
+}
+
+\newglossaryentry{gls-bernoullimap}{
+    name={Bernoulli map},
+    description={An approximate map where each key-existence test is an independent Bernoulli trial with specified false positive rate, and positive keys map to their associated values}
+}
+
+\newglossaryentry{gls-bhf}{
+    name={Bernoulli Hash Function},
+    description={A family of hash-based constructions that optimally implement Bernoulli sets and Bernoulli maps}
+}
+
+\newglossaryentry{gls-phf}{
+    name={Perfect Hash Filter},
+    description={A data structure implementing the approximate set abstract data type using a perfect hash function}
+}
+
+\newglossaryentry{gls-blf}{
+    name={Bloom filter},
+    description={A space-efficient probabilistic data structure for approximate set membership testing}
+}
+
+\newacronym{acr-bhf}{BHF}{\gls*{gls-bhf}}
+\newacronym{acr-phf}{PHF}{\gls*{gls-phf}}
+\newacronym{acr-bf}{BF}{\gls*{gls-blf}}

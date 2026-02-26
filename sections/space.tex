@@ -1,0 +1,125 @@
+\section{Space complexity}
+\label{sec:space}
+
+We prove that the BHF achieves the information-theoretic lower bound on space
+complexity for both Bernoulli sets and Bernoulli maps, under both predicate
+forms.
+
+\subsection{General proof (maps)}
+
+The BHF representation is the tuple $(h_k, b)$ or $(N, t, b)$.
+The dominant term is the length of the salt $b$, which the algorithm discovers
+by exhaustive search in order of increasing length.
+
+\begin{theorem}[Success probability per trial]
+\label{thm:success_prob}
+The probability that a candidate salt $b$ yields a valid BHF for a map with
+$m$ keys, false positive rate $\fprate$, and mean value encoding length $\mu$
+is:
+\begin{enumerate}[(i)]
+    \item Equality predicate: $p_{\mathrm{eq}} = \fprate^{m-1} / 2^{m\mu}$.
+    \item Threshold predicate: $p_{\mathrm{th}} = \fprate^{m} / 2^{m\mu}$.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+See \cref{thm:success_eq,thm:success_thresh}.
+\end{proof}
+
+\begin{theorem}[Space complexity of the BHF]
+\label{thm:space}
+The expected bit length of the BHF asymptotically achieves
+\begin{equation}
+    -\log_2 \fprate + \mu \;\; \si{bits \per element}
+\end{equation}
+as $m \to \infty$, for both predicate forms.
+\end{theorem}
+\begin{proof}
+The algorithm searches through candidate salts in order of increasing bit
+length.
+By \cref{def:mapping}, the \nth candidate maps uniquely to a bit string.
+The search terminates at the first success, which follows a geometric
+distribution with parameter $p$ (where $p = p_{\mathrm{eq}}$ or
+$p = p_{\mathrm{th}}$).
+
+Let $\RV{Q} \sim \geodist(p)$ be the trial at which the first success occurs.
+The salt bit length is $\RV{N} \approx \log_2 \RV{Q}$ (a slight overestimate
+from dropping the floor).
+
+We approximate $\Expect{\RV{N}}$ via a second-order Taylor expansion of
+$\log_2$ around $\Expect{\RV{Q}}$:
+\begin{equation}
+    \Expect{\RV{N}} \approx \log_2 \Expect{\RV{Q}}
+        - \frac{\log_2 e}{\Expect{\RV{Q}}} \Var{\RV{Q}}\,.
+\end{equation}
+For $\RV{Q} \sim \geodist(p)$, $\Expect{\RV{Q}} = 1/p$ and
+$\Var{\RV{Q}} = (1-p)/p^2$.
+Substituting:
+\begin{equation}
+    \Expect{\RV{N}} \approx -\log_2 p + (1 - 1/p) \log_2 e\,.
+\end{equation}
+
+\paragraph{Equality predicate.}
+With $p = \fprate^{m-1}/2^{m\mu}$:
+\begin{align}
+    \Expect{\RV{N}}
+        &\approx -(m-1)\log_2 \fprate + m\mu
+            + (1 - \fprate^{-(m-1)} 2^{m\mu}) \log_2 e\,.
+\end{align}
+Dividing by $m$ and taking $m \to \infty$:
+\begin{equation}
+    \frac{\Expect{\RV{N}}}{m} \to -\log_2 \fprate + \mu\,.
+\end{equation}
+
+\paragraph{Threshold predicate.}
+With $p = \fprate^{m}/2^{m\mu}$:
+\begin{align}
+    \Expect{\RV{N}}
+        &\approx -m\log_2 \fprate + m\mu
+            + (1 - \fprate^{-m} 2^{m\mu}) \log_2 e\,.
+\end{align}
+Dividing by $m$ and taking $m \to \infty$:
+\begin{equation}
+    \frac{\Expect{\RV{N}}}{m} \to -\log_2 \fprate + \mu\,.
+\end{equation}
+In both cases, the expected bits per element converges to the information-theoretic lower bound $-\log_2 \fprate + \mu$.
+\end{proof}
+
+\subsection{Set as corollary}
+
+\begin{corollary}[Space complexity for sets]
+\label{cor:set_space}
+For a Bernoulli set ($\mu = 0$), the BHF achieves $-\log_2 \fprate$ bits per
+element asymptotically.
+\end{corollary}
+\begin{proof}
+Set $\mu = 0$ in \cref{thm:space}.
+\end{proof}
+
+\subsection{Finite-sample correction}
+
+For finite $m$, the exact bits per element are:
+\begin{equation}
+    \frac{\Expect{\RV{N}}}{m} =
+    \begin{cases}
+        -\dfrac{m-1}{m}\log_2 \fprate + \mu + \mathcal{O}(1/m)
+            & \text{(equality)}\,,\\[8pt]
+        -\log_2 \fprate + \mu + \mathcal{O}(1/m)
+            & \text{(threshold)}\,.
+    \end{cases}
+\end{equation}
+The equality predicate is slightly more space-efficient for small $m$
+(by $\log_2 \fprate / m$ bits per element) due to the adaptive $h_0$.
+
+\subsection{Effect of false negatives}
+
+When $\fnrate > 0$, only $p = (1-\fnrate)m$ elements need to be accepted.
+The success probability becomes (for the equality predicate):
+\begin{equation}
+    p = \frac{\fprate^{p-1}}{2^{p\mu}}\,,
+\end{equation}
+and the space complexity per element of the \emph{original} set becomes:
+\begin{equation}
+    \frac{p}{m}\left(-\log_2 \fprate + \mu\right)
+    = (1 - \fnrate)\left(-\log_2 \fprate + \mu\right)\,,
+\end{equation}
+matching the lower bound in \cref{post:map_lb}.

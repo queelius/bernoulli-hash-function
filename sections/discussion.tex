@@ -1,0 +1,72 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Obliviousness and confidentiality}
+
+The BHF was originally motivated by \emph{oblivious} data structures for
+encrypted search~\cite{es}.
+An oblivious set (or map) is one whose binary representation reveals minimal
+information about the underlying data beyond what is accessible through the
+defined interface.
+
+The maximum entropy property (\cref{thm:max_entropy}) is central to
+obliviousness: the BHF encoding is incompressible (conditioned on its length),
+so no side-channel information beyond the encoding length is available to an
+adversary.
+The encoding length itself reveals only an estimate of the cardinality, and
+this leakage can be controlled via the entropy--space tradeoff
+(\cref{sec:entropy}).
+
+For Bernoulli maps, the choice of value encoder affects obliviousness.
+An optimal (e.g., Huffman) encoder minimizes space but reveals distributional
+information about the values.
+A uniform-length encoder preserves obliviousness at the cost of higher $\mu$.
+
+\subsection{Comparison with existing data structures}
+
+\paragraph{Bloom filter~\cite{bloom1970,bf_survey}.}
+The Bloom filter is a practical implementation of the positive Bernoulli set
+($\fnrate = 0$).
+It achieves $\log_2(e) / \fprate$ bits per element, which exceeds the
+information-theoretic lower bound of $-\log_2 \fprate$ by a factor of
+$\log_2 e \approx 1.44$.
+The Bloom filter does not support false negatives ($\fnrate > 0$) or maps.
+
+\paragraph{Perfect Hash Filter~\cite{phf}.}
+The PHF uses a perfect hash function to achieve $\log_2(e/\fprate)$ bits per
+element for positive Bernoulli sets.
+This is closer to optimal than the Bloom filter but still exceeds the lower
+bound.
+The Perfect Map Filter~\cite{pmf} extends this to maps.
+
+\paragraph{Bernoulli Hash Function.}
+The BHF achieves the exact lower bound ($-\log_2 \fprate + \mu$ bits per
+element) and maximizes entropy.
+However, the construction time is exponential in $m$ (expected
+$\mathcal{O}(1/p)$ trials), making it a theoretical result that establishes
+the achievability of the bound.
+
+\subsection{Practical considerations}
+
+While the BHF construction is exponential-time and thus impractical for large
+sets, it serves several purposes:
+\begin{enumerate}
+    \item It proves that the information-theoretic lower bound is
+    \emph{achievable}, not merely a lower bound.
+    \item It provides a benchmark against which practical data structures
+    (Bloom filters, PHFs) can be compared.
+    \item For very small sets ($m \leq 10$), the construction is feasible and
+    may be useful in specialized applications such as encrypted search indices.
+\end{enumerate}
+
+\subsection{Encrypted search application}
+
+In encrypted search~\cite{es}, a client constructs BHF instances of document
+term sets and stores them on an untrusted server.
+To search, the client provides the server with a query term and the server
+tests membership in each BHF without learning the document contents.
+The Bernoulli map variant enables rank-ordered search: each key (term) maps
+to a relevance score, and the server can retrieve approximate scores for
+query terms.
+The maximum entropy and obliviousness properties ensure that the server learns
+only what is revealed by the query results.

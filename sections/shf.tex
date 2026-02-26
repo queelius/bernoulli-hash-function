@@ -1,0 +1,167 @@
+\section{The Bernoulli Hash Function family}
+\label{sec:shf}
+
+The \emph{Bernoulli Hash Function} (BHF) is a family of constructions that
+encode a finite set or map into a compact binary representation using a hash
+function and a \emph{salt}---a bit string $b$ discovered by search.
+The key idea is an \emph{acceptance predicate} that determines membership.
+
+\subsection{Acceptance predicates}
+
+\begin{definition}[Acceptance predicate]
+\label{def:acceptance}
+Given a hash function $\hash$, a salt $b \in \cisb$, a modulus $N \in \NatSet$,
+and an \emph{acceptance set} $\Set{A} \subseteq \{0, 1, \ldots, N-1\}$, an
+element $x$ is \emph{accepted} if and only if
+\begin{equation}
+    \hash(x \cat b) \bmod N \in \Set{A}\,.
+\end{equation}
+Under the random oracle assumption (\cref{asm:ro_approx}), the false positive
+rate is
+\begin{equation}
+    \fprate = \frac{\Card{\Set{A}}}{N}\,.
+\end{equation}
+\end{definition}
+
+Two important special cases arise from the choice of $\Set{A}$:
+
+\paragraph{Equality predicate (classical BHF).}
+Set $N = 2^k$ and $\Set{A} = \{h_0\}$ for some $h_0 \in \{0,\ldots,2^k-1\}$
+discovered adaptively during construction.
+Then $\fprate = 2^{-k}$ and the membership test is
+\begin{equation}
+    \hash(x \cat b) \bmod 2^k = h_0\,.
+\end{equation}
+The achievable false positive rates are $\fprate \in \{2^{-k} : k \in \NatSet\}$.
+
+\paragraph{Threshold predicate (generalization).}
+Set $\Set{A} = \{0, 1, \ldots, t\}$ for a threshold $t \geq 0$.
+Then $\fprate = (t+1)/N$ and the membership test is
+\begin{equation}
+\label{eq:threshold_test}
+    \hash(x \cat b) \bmod N \leq t\,.
+\end{equation}
+The achievable false positive rates are
+$\fprate \in \{j/N : j = 1, \ldots, N\}$, which is a much finer lattice
+than the power-of-two constraint of the equality predicate.
+
+\subsection{Success probability per trial}
+
+The probability that a candidate salt $b$ produces a valid BHF depends on the
+predicate type.
+
+\begin{theorem}[Success probability---equality predicate]
+\label{thm:success_eq}
+For the equality predicate with $m$ keys, false positive rate
+$\fprate = 2^{-k}$, and mean value encoding length $\mu$ bits, the probability
+that a given salt $b$ yields a valid construction is
+\begin{equation}
+    p_{\mathrm{eq}}(m, \fprate, \mu) = \frac{\fprate^{m-1}}{2^{m\mu}}\,.
+\end{equation}
+\end{theorem}
+\begin{proof}
+Under the random oracle assumption, the hash of each key concatenated with
+$b$ is independent and uniform.
+The first key fixes the target hash $h_0$; each of the remaining $m-1$ keys
+must hash to $h_0$, each with probability $\fprate$.
+Additionally, for a map, each key's value must match the first $\BL(v_i)$ bits
+of a second hash, contributing a factor of $2^{-\BL(v_i)}$ per key.
+The product is
+\begin{equation}
+    \fprate^{m-1} \cdot \prod_{i=1}^{m} 2^{-\BL(v_i)}
+    = \frac{\fprate^{m-1}}{2^{m\mu}}\,,
+\end{equation}
+where $\mu = \frac{1}{m}\sum_{i=1}^{m} \BL(v_i)$ is the mean value bit length.
+For sets, $\mu = 0$ and the expression reduces to $\fprate^{m-1}$.
+\end{proof}
+
+\begin{theorem}[Success probability---threshold predicate]
+\label{thm:success_thresh}
+For the threshold predicate with modulus $N$, threshold $t$, $m$ keys, and mean
+value encoding length $\mu$ bits, the probability that a given salt $b$ yields
+a valid construction is
+\begin{equation}
+    p_{\mathrm{th}}(m, \fprate, \mu) = \frac{\fprate^{m}}{2^{m\mu}}\,.
+\end{equation}
+\end{theorem}
+\begin{proof}
+With the threshold predicate, the acceptance set $\Set{A} = \{0,\ldots,t\}$ is
+fixed \emph{before} examining the salt.
+Each of the $m$ keys must independently hash into $\Set{A}$, each with
+probability $\fprate = (t+1)/N$.
+This gives $\fprate^m$ (not $\fprate^{m-1}$, since no key is ``free'' to fix
+the target).
+The value-matching factor contributes $2^{-m\mu}$ as before.
+\end{proof}
+
+\begin{remark}
+The equality predicate has a factor-of-$\fprate^{-1}$ advantage in success
+probability because one key adaptively determines $h_0$.
+In the space complexity (\cref{sec:space}), this manifests as an additive
+$\log_2 \fprate / m$ bits per element, which vanishes as $m \to \infty$.
+Both predicates achieve the same asymptotic optimum.
+\end{remark}
+
+\subsection{FPR granularity}
+
+\begin{theorem}[FPR granularity]
+\label{thm:fpr_granularity}
+With modulus $N$, the threshold predicate achieves any false positive rate in
+the lattice
+\begin{equation}
+    \fprate \in \left\{\frac{j}{N} : j = 1, 2, \ldots, N\right\}\,,
+\end{equation}
+whereas the equality predicate achieves only
+$\fprate \in \{2^{-k} : k \in \NatSet\}$.
+\end{theorem}
+
+This is immediate from the definitions.
+For example, with $N = 100$, one can achieve $\fprate = 0.01, 0.02, \ldots, 1.00$, whereas the equality predicate can only achieve $\fprate = 0.5, 0.25, 0.125, \ldots$
+
+\subsection{Simplified search for $\fnrate > 0$}
+
+When the false negative rate $\fnrate > 0$, only $p = (1-\fnrate)m$ of the
+$m$ elements need to be accepted.
+Under the equality predicate, the algorithm must enumerate all $\binom{m}{p}$
+subsets of size $p$ and check whether each subset collides.
+Under the threshold predicate, the search is dramatically simpler.
+
+\begin{theorem}[Search complexity for $\fnrate > 0$]
+\label{thm:fnr_search}
+Under the threshold predicate, testing whether a candidate salt $b$ admits at
+least $p$ of $m$ elements requires $\mathcal{O}(m)$ hash evaluations: simply
+count how many elements satisfy $\hash(x \cat b) \bmod N \leq t$.
+
+Under the equality predicate, the same test requires
+$\mathcal{O}\!\left(\binom{m}{p} \cdot m\right)$ hash evaluations in the worst
+case, since each candidate $h_0$ (determined by each $p$-subset) must be
+checked against all elements.
+\end{theorem}
+\begin{proof}
+For the threshold predicate, the acceptance set $\Set{A}$ is fixed.
+For each candidate salt $b$, we compute $\hash(x_i \cat b) \bmod N$ for
+$i = 1,\ldots,m$ and count the number that fall in $\Set{A}$.
+If at least $p$ do, the salt succeeds.
+This is $\mathcal{O}(m)$ per candidate salt.
+
+For the equality predicate, the target $h_0$ is not known a priori.
+For each $p$-element subset, the first element determines $h_0$, and the
+remaining $p-1$ elements must match.
+Since there are $\binom{m}{p}$ such subsets, the worst-case cost per candidate
+salt is $\mathcal{O}\!\left(\binom{m}{p} \cdot m\right)$.
+\end{proof}
+
+\subsection{Adaptive threshold}
+
+An intermediate strategy is the \emph{adaptive threshold}: given a salt $b$,
+compute all $m$ hash values $\hash(x_i \cat b) \bmod N$, sort them, and set
+$t$ to be the $p$-th smallest value (the $p$-th order statistic).
+Then exactly $p$ elements are accepted.
+The resulting FPR is the random variable
+\begin{equation}
+    \fprate = \frac{t + 1}{N}\,,
+\end{equation}
+which is concentrated around the target FPR as $N$ grows.
+This approach combines the $\mathcal{O}(m \log m)$ simplicity of the threshold
+test with the adaptive efficiency of the equality test, at the cost of storing
+the threshold $t$ as part of the representation.

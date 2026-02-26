@@ -1,0 +1,104 @@
+\section{Entropy and information}
+\label{sec:entropy}
+
+The BHF is not only space-optimal but also achieves \emph{maximum entropy} in
+its binary representation.
+This is a desirable property for applications requiring confidentiality
+(e.g., encrypted search), as it minimizes the information leaked by the encoding.
+
+\subsection{Maximum entropy coding}
+
+\begin{theorem}[Maximum entropy]
+\label{thm:max_entropy}
+The BHF encoding is a maximum entropy coder for the Bernoulli set (and map)
+abstract data type.
+\end{theorem}
+\begin{proof}
+The BHF encoding consists of:
+\begin{enumerate}
+    \item The hash value $h_k$ (or the threshold $t$): uniformly distributed
+    over its domain by the random oracle assumption.
+    \item The salt $b$: conditioned on having length $n$, the particular
+    $b \in \cisbn{n}$ that is found is uniformly distributed (the search
+    order is randomized within each length level).
+\end{enumerate}
+Both components are \emph{incompressible}---their entropy equals their bit
+length.
+The only information in the representation is the \emph{length} of $b$,
+which depends on the cardinality $m$ and the rates $\fprate$, $\mu$.
+\end{proof}
+
+\subsection{The random bit length distribution}
+
+The bit length of the salt is a random variable whose distribution governs the
+information content of the BHF.
+
+\begin{theorem}[PMF of the salt bit length]
+\label{thm:N_pmf}
+The random bit length $\RV{N}$ of the salt $b$ has the probability mass
+function
+\begin{equation}
+\label{eq:N_pmf}
+    \PDF{n \Given m, \fprate, \mu}[\RV{N}]
+        = q^{2^n - 1}\!\left(1 - q^{2^n}\right)\,,
+\end{equation}
+where $q = 1 - p$ and $p$ is the per-trial success probability
+(\cref{thm:success_prob}).
+\end{theorem}
+\begin{proof}
+For $\RV{N} = n$, every bit string of length less than $n$ must fail
+(there are $2^n - 1$ such strings, each failing independently with
+probability $q$), and at least one bit string of length $n$ must succeed
+(the complementary probability of all $2^n$ failing):
+\begin{equation}
+    \Prob{\RV{N} = n} = q^{2^n - 1} \cdot (1 - q^{2^n})\,.
+\end{equation}
+That this is a valid PMF follows from the telescoping sum:
+\begin{equation}
+    \sum_{n=0}^{\infty} \left(q^{2^n - 1} - q^{2^{n+1} - 1}\right)
+    = 1 - \lim_{n \to \infty} q^{2^n - 1} = 1\,.
+\end{equation}
+Alternatively, $\RV{N} = \lfloor \log_2 \RV{Q} \rfloor$ where
+$\RV{Q} \sim \geodist(p)$.
+\end{proof}
+
+\subsection{Cardinality estimation}
+
+The bit length of the BHF is concentrated around its expectation, which
+depends on $m$.
+This enables cardinality estimation.
+
+Given an BHF with bit length $\BL(\ASet{S})$ and known $\fprate$, the
+method-of-moments estimator of the cardinality is
+\begin{equation}
+    \hat{m} = -\frac{\BL(\ASet{S})}{\log_2 \fprate}\,.
+\end{equation}
+For maps, replacing $\log_2 \fprate$ with $\log_2 \fprate - \mu$ in the
+denominator.
+
+\subsection{Entropy--space tradeoff}
+
+To increase the entropy of the cardinality (making $m$ harder to estimate),
+one can search for a salt $b$ whose length exceeds the expected value.
+Setting a target bit length $\ell \gg -m\log_2 \fprate$, the cardinality is
+consistent with any $m' \leq -\ell / \log_2 \fprate$, uniformly distributed.
+The entropy of the cardinality estimate becomes
+\begin{equation}
+    \log_2\!\left(1 + \hat{m}_{\max}\right)\,,
+    \quad\text{where}\quad
+    \hat{m}_{\max} = -\frac{\ell}{\log_2 \fprate}\,,
+\end{equation}
+at the cost of a space efficiency ratio $m / \hat{m}_{\max}$.
+
+\subsection{Entropy of false positives and false negatives}
+
+The joint entropy of the number of false positives and false negatives
+(given a finite universe of $u$ elements and $m$ positives) is:
+\begin{equation}
+    \Entropy{\FP_m, \FN_m}
+    = \log_2(2\pi e)
+    + \frac{1}{2}\log_2\!\big((u-m)\,m\,\fprate(1-\fprate)\,\fnrate(1-\fnrate)\big)
+    + \mathcal{O}\!\left(\frac{u}{m(u-m)}\right)\,,
+\end{equation}
+using the binomial entropy approximation (see~\cite{bernoulli_sets} for the
+full derivation).
