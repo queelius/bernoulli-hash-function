@@ -109,6 +109,69 @@ $\fnrate > 0$.
 When $\fnrate = 0$, both reduce to $\mathcal{O}(m)$ per candidate.
 \end{remark}
 
+\begin{algorithm}[ht]
+    \caption{Unified BHF construction (adaptive threshold predicate)}
+    \label{alg:make_shf_adaptive}
+    \DontPrintSemicolon
+    \SetKwProg{func}{function}{}{}
+    \KwIn{
+        $\Set{M} = \{(x_1,v_1),\ldots,(x_m,v_m)\}$ is a finite map
+        (for a set, $v_i = \epsilon$ for all $i$),
+        $N$ is the modulus,
+        $p$ is the number of elements to accept
+        ($\fnrate = 1 - p/m$).
+    }
+    \KwOut{
+        A Bernoulli map $\ASet{M}$ coded as a tuple $(N, t)$.
+    }
+    \func{\MakeBHFAdaptive{$\Set{M}$, $N$, $p$}}{
+        \tcp{For sets ($\mu = 0$): any salt works; pick $b = \epsilon$}
+        \uIf{$\mu = 0$}{
+            $b \gets \epsilon$
+            \tcp*{empty string---no search needed}
+            Compute $r_i \gets \hash(x_i \cat b) \bmod N$ for $i = 1,\ldots,m$\;
+            Sort $r_{(1)} \leq r_{(2)} \leq \cdots \leq r_{(m)}$\;
+            $t \gets r_{(p)}$\;
+            \Return $(N, t)$\;
+        }
+        \tcp{For maps ($\mu > 0$): search for a salt with $\geq p$
+            value-matching keys}
+        \For{$n \gets 0$ \KwTo $\infty$}{
+            \For{$j \gets 1$ \KwTo $2^n$}{
+                $b \gets$ draw a bit string of length $n$ uniformly at random
+                    from $\cisbn{n}$ without replacement\;
+                $\Set{V} \gets \emptyset$
+                \tcp*{value-matching keys}
+                \For{$i \gets 1$ \KwTo $m$}{
+                    \If{$\hash(1 \cat x_i \cat b) \bmod 2^{\BL(v_i)}
+                        = \Encode(v_i)$}{
+                        $\Set{V} \gets \Set{V} \cup \{i\}$\;
+                    }
+                }
+                \If{$\Card{\Set{V}} \geq p$}{
+                    Compute $r_i \gets \hash(x_i \cat b) \bmod N$ for
+                        $i \in \Set{V}$\;
+                    Sort the residues $\{r_i : i \in \Set{V}\}$\;
+                    $t \gets$ the $p$-th smallest residue\;
+                    \Return $(N, t)$\;
+                }
+            }
+        }
+    }
+\end{algorithm}
+
+\begin{remark}
+The adaptive construction (\cref{alg:make_shf_adaptive}) differs fundamentally
+from the equality and threshold constructions: for sets ($\mu = 0$), no salt
+search is required.
+The salt can be fixed to the empty string $\epsilon$, and the entire
+construction reduces to hashing, sorting, and reading off the $p$-th order
+statistic.
+The output $(N, t)$ does not include a salt, since it is not needed.
+For maps, the search loop finds a salt with enough value-matching keys, then
+the adaptive threshold is set on the matching subset.
+\end{remark}
+
 \subsection{Set construction as a special case}
 
 For a Bernoulli set, each value $v_i$ is the empty string ($\mu = 0$).

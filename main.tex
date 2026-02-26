@@ -10,6 +10,8 @@
 \usepackage{enumerate}
 \usepackage{amsthm}
 \usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 \usepackage[section]{placeins}
 \usepackage[square,numbers]{natbib}
 \usepackage[margin=1in]{geometry}
@@ -55,6 +57,10 @@ the classical equality test $h(x \cat b) = h_0$ is a special case of a
 generalized threshold test $h(x \cat b) \bmod N \leq t$, which provides
 finer false positive rate granularity and eliminates the combinatorial subset
 enumeration required when the false negative rate $\fnrate > 0$.
+We also introduce an \emph{adaptive threshold} variant that sets $t$ to the
+$p$-th order statistic of the hash residues, eliminating the salt search
+entirely for sets and achieving $\mathcal{O}(\log N / m) \to 0$ bits per
+element---at the cost of a random (Beta-distributed) false positive rate.
 We prove that the BHF achieves the information-theoretic lower bound on space
 complexity while maximizing entropy, for both sets (value length $\mu = 0$)
 and maps (arbitrary $\mu$), under both predicate forms.

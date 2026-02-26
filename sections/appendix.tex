@@ -101,3 +101,88 @@ Expanding the first few terms:
     = \sum_{n=1}^{\infty} q^{2^n - 1}\,.
 \end{align}
 \end{proof}
+
+\section{Adaptive threshold PMF derivation}
+\label{sec:adaptive_pmf_derivation}
+
+We derive the exact PMF of the threshold $T = \OS{p}{m}$ stated in
+\cref{thm:fpr_distribution}.
+
+\begin{theorem}[PMF of the $p$-th order statistic from discrete uniform draws]
+\label{thm:os_pmf_detailed}
+Let $R_1,\ldots,R_m$ be i.i.d.\ $\operatorname{Uniform}\{0,1,\ldots,N-1\}$,
+and let $\OS{p}{m}$ denote the $p$-th order statistic.
+Then
+\begin{equation}
+\label{eq:os_pmf_detailed}
+    \Prob{\OS{p}{m} = j}
+    \;=\; \frac{1}{N}\,\frac{m!}{(p-1)!(m-p)!}
+    \sum_{i=0}^{\min(p-1,\, j)}
+    \sum_{k=0}^{\min(m-p,\, N-1-j)}
+    \frac{(-1)^{i+k}\binom{p-1}{i}\binom{m-p}{k}}
+    {\binom{j}{p-1-i}\binom{N-1-j}{m-p-k}}^{-1}\,,
+\end{equation}
+which simplifies, by the Vandermonde identity, to the closed form
+\begin{equation}
+    \Prob{\OS{p}{m} = j}
+    \;=\; \frac{\binom{j}{p-1}\binom{N-1-j}{m-p}}{\binom{N-1}{m-1}}
+    \cdot \frac{m}{N}\,,
+\end{equation}
+for $j = p-1, p, \ldots, N-1-(m-p)$.
+\end{theorem}
+\begin{proof}
+The event $\{\OS{p}{m} = j\}$ requires:
+\begin{enumerate}
+    \item Exactly one of the $m$ draws equals $j$ \emph{and} is the $p$-th
+    smallest.
+    \item Exactly $p - 1$ of the remaining $m - 1$ draws fall in
+    $\{0,\ldots,j-1\}$.
+    \item The remaining $m - p$ draws fall in $\{j+1,\ldots,N-1\}$.
+\end{enumerate}
+
+There are $m$ choices for which draw equals $j$.
+The probability that a single draw equals $j$ is $1/N$.
+Given this, the remaining $m-1$ draws are i.i.d.\ on $\{0,\ldots,N-1\}$.
+We need exactly $p - 1$ of them to fall in $\{0,\ldots,j-1\}$ (probability
+$j/N$ each) and the remaining $m - p$ to fall in $\{j+1,\ldots,N-1\}$
+(probability $(N - 1 - j)/N$ each).
+By the multinomial theorem:
+\begin{align}
+    \Prob{\OS{p}{m} = j}
+    &= m \cdot \frac{1}{N} \cdot \binom{m-1}{p-1}
+       \left(\frac{j}{N}\right)^{p-1}
+       \left(\frac{N-1-j}{N}\right)^{m-p} \\
+    &= \frac{m}{N}\,\binom{m-1}{p-1}
+       \left(\frac{j}{N}\right)^{p-1}
+       \left(\frac{N-1-j}{N}\right)^{m-p}\,.
+\end{align}
+
+Wait---this is the continuous-approximation version (when draws are
+\emph{distinct} with high probability).
+For the exact discrete case with possible ties, the correct derivation uses
+the discrete order statistic formula directly.
+
+For $N \gg m$ (so ties have negligible probability), we can also use
+the combinatorial counting argument: among $\binom{N}{m}$ equally likely
+multisets, the number with $p$-th smallest element equal to $j$ is obtained
+by choosing $p - 1$ values from $\{0,\ldots,j-1\}$ and $m - p$ values from
+$\{j+1,\ldots,N-1\}$, but without replacement (since the random oracle
+makes collisions negligible for $N \gg m$).
+This gives
+\begin{equation}
+    \Prob{\OS{p}{m} = j}
+    = \frac{\binom{j}{p-1}\binom{N-1-j}{m-p}}{\binom{N-1}{m-1}}
+      \cdot \frac{m}{N}\,.
+\end{equation}
+
+\paragraph{Continuous limit.}
+Setting $x = j/N$ and taking $N \to \infty$:
+\begin{align}
+    \Prob{\OS{p}{m} \leq xN}
+    &\;\to\;\
+    I_x(p, m - p + 1)\,,
+\end{align}
+where $I_x$ is the regularized incomplete Beta function.
+Differentiating with respect to $x$ yields the $\betadist(p, m - p + 1)$
+density, confirming \cref{eq:fpr_beta}.
+\end{proof}

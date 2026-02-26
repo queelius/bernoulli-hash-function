@@ -35,6 +35,9 @@ We make three contributions:
     $\fprate \in \{j/N : j = 1,\ldots,N\}$).
     The threshold test provides finer FPR granularity and, crucially,
     eliminates the $\binom{m}{p}$ subset enumeration when $\fnrate > 0$.
+    We further introduce an \emph{adaptive} variant that sets $t$ to the
+    $p$-th order statistic of the hash residues, eliminating the salt search
+    entirely for sets (success probability 1) at the cost of a random FPR.
 
     \item \textbf{Information-theoretic optimality.}
     We prove that the BHF achieves the information-theoretic lower bound on

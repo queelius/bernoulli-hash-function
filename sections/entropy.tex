@@ -102,3 +102,62 @@ The joint entropy of the number of false positives and false negatives
 \end{equation}
 using the binomial entropy approximation (see~\cite{bernoulli_sets} for the
 full derivation).
+
+\subsection{Entropy of the adaptive threshold}
+\label{sec:adaptive_entropy}
+
+The adaptive threshold BHF stores only $(N, t)$.
+The modulus $N$ is a public parameter, so the information content resides
+entirely in the threshold $t$.
+
+\begin{theorem}[Entropy of the adaptive threshold]
+\label{thm:adaptive_entropy}
+For a Bernoulli set ($\mu = 0$) with $m$ keys and modulus $N$, the entropy
+of the threshold $T = \OS{p}{m}$ is
+\begin{equation}
+\label{eq:adaptive_entropy}
+    \Entropy{T}
+    \;=\; -\sum_{j=p-1}^{N-1-(m-p)} \Prob{T = j}\,\log_2 \Prob{T = j}\,,
+\end{equation}
+where $\Prob{T = j}$ is given by \cref{eq:os_pmf}.
+In the continuous limit ($N \to \infty$), the entropy of
+$\fprate \sim \betadist(p, m - p + 1)$ is
+\begin{equation}
+\label{eq:adaptive_entropy_beta}
+    \Entropy{\fprate}
+    \;=\; \ln B(p, m\!-\!p\!+\!1)
+    - (p\!-\!1)\,\psi(p)
+    - (m\!-\!p)\,\psi(m\!-\!p\!+\!1)
+    + (m\!-\!1)\,\psi(m\!+\!1)\,,
+\end{equation}
+where $B(\cdot,\cdot)$ is the Beta function and $\psi$ is the digamma
+function, measured in nats ($\div \ln 2$ for bits).
+\end{theorem}
+\begin{proof}
+\Cref{eq:adaptive_entropy} is the definition of discrete entropy applied to
+the PMF in \cref{thm:fpr_distribution}.
+The continuous limit is the differential entropy of the
+$\betadist(p, m - p + 1)$ distribution, which is a standard
+result~\cite{order_statistics}.
+\end{proof}
+
+\begin{remark}[The adaptive threshold is not maximum entropy]
+\label{rem:adaptive_not_max_entropy}
+The adaptive threshold does \emph{not} produce a maximum entropy encoding.
+In the equality and threshold predicates, the salt $b$ is drawn from the
+maximum entropy distribution over salts consistent with the space constraint
+(\cref{thm:max_entropy}): conditioned on having length $n$, the successful
+salt is uniformly distributed.
+In the adaptive threshold, the threshold $t$ is \emph{data-dependent}---it is
+a deterministic function of the keys and the (fixed) salt.
+Given the same keys and $N$, the threshold is fully determined, so the
+encoding carries less entropy than an exhaustive-search encoding of the same
+size.
+
+However, conditioned on a particular threshold value $t$, the resulting
+fixed-threshold BHF \emph{is} maximum entropy in the sense of
+\cref{thm:max_entropy}: the adversary learns $(N, t)$ but nothing about
+which elements produced the threshold.
+The entropy loss relative to the fixed-threshold BHF is precisely
+$\Entropy{T}$---the information revealed by the data-dependent choice of $t$.
+\end{remark}

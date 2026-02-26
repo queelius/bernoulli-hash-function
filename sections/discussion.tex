@@ -39,12 +39,24 @@ This is closer to optimal than the Bloom filter but still exceeds the lower
 bound.
 The Perfect Map Filter~\cite{pmf} extends this to maps.
 
-\paragraph{Bernoulli Hash Function.}
+\paragraph{Bernoulli Hash Function (equality/threshold).}
 The BHF achieves the exact lower bound ($-\log_2 \fprate + \mu$ bits per
 element) and maximizes entropy.
 However, the construction time is exponential in $m$ (expected
 $\mathcal{O}(1/p)$ trials), making it a theoretical result that establishes
 the achievability of the bound.
+
+\paragraph{Bernoulli Hash Function (adaptive threshold).}
+The adaptive variant (\cref{sec:adaptive}) trades a fixed FPR for a random one
+($\fprate \sim \betadist(p, m - p + 1)$) and in return eliminates the salt
+search entirely for sets.
+The per-element space cost is $\mathcal{O}(\log N / m) \to 0$, far below the
+information-theoretic lower bound for fixed-FPR structures.
+This does not violate the lower bound because the FPR is a random variable,
+not a fixed parameter (\cref{rem:lb_not_violated}).
+For applications that can tolerate FPR variability (e.g., when the FPR
+concentrates sufficiently around a target), the adaptive threshold provides
+a polynomial-time, near-zero-space construction.
 
 \subsection{Practical considerations}
 
@@ -57,6 +69,10 @@ sets, it serves several purposes:
     (Bloom filters, PHFs) can be compared.
     \item For very small sets ($m \leq 10$), the construction is feasible and
     may be useful in specialized applications such as encrypted search indices.
+    \item The adaptive threshold variant is practical for \emph{any} set size:
+    the construction is $\mathcal{O}(m \log m)$ and the space cost vanishes as
+    $m$ grows.
+    The tradeoff is a random FPR with variance $\mathcal{O}(1/m)$.
 \end{enumerate}
 
 \subsection{Encrypted search application}
