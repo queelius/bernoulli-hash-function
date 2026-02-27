@@ -44,7 +44,7 @@ membership/lookup queries.
                         }
                         \tcp{For maps: check value match}
                         \If{$\mu > 0$ \textbf{and}
-                            $\hash(1 \cat x^{(i)}) \bmod 2^{\BL(v^{(i)})}
+                            $\hash(1 \cat x^{(i)} \cat b) \bmod 2^{\BL(v^{(i)})}
                             \neq \Encode(v^{(i)})$}{
                             $\found \gets \False$\;
                             \Break\;
@@ -86,7 +86,7 @@ membership/lookup queries.
                     \If{$\hash(x_i \cat b) \bmod N \leq t$}{
                         \tcp{For maps: also check value match}
                         \If{$\mu = 0$ \textbf{or}
-                            $\hash(1 \cat x_i) \bmod 2^{\BL(v_i)}
+                            $\hash(1 \cat x_i \cat b) \bmod 2^{\BL(v_i)}
                             = \Encode(v_i)$}{
                             $c \gets c + 1$\;
                         }
@@ -187,7 +187,7 @@ elements pass the acceptance predicate.
     \DontPrintSemicolon
     \SetKwProg{func}{function}{}{}
     \KwIn{
-        $\ASet{S}$ is an BHF-coded Bernoulli set with parameters
+        $\ASet{S}$ is a BHF-coded Bernoulli set with parameters
         $(h_k, b)$ or $(N, t, b)$, and $x$ is the query element.
     }
     \KwOut{
@@ -211,7 +211,7 @@ elements pass the acceptance predicate.
     \DontPrintSemicolon
     \SetKwProg{func}{function}{}{}
     \KwIn{
-        $\ASet{M}$ is an BHF-coded Bernoulli map and $x$ is the query key.
+        $\ASet{M}$ is a BHF-coded Bernoulli map and $x$ is the query key.
     }
     \KwOut{
         If $x$ is a positive key, returns $\Set{M}[x]$.

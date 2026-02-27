@@ -151,6 +151,16 @@ Since there are $\binom{m}{p}$ such subsets, the worst-case cost per candidate
 salt is $\mathcal{O}\!\left(\binom{m}{p} \cdot m\right)$.
 \end{proof}
 
+\begin{remark}
+The $\binom{m}{p}$ bound for the equality predicate applies to the naive
+subset-enumeration algorithm (\cref{alg:make_shf_eq}).
+A hash-and-count approach---hashing all $m$ elements, grouping by hash value,
+and checking if any group has $\geq p$ members---achieves $\mathcal{O}(m)$
+per candidate salt, matching the threshold predicate.
+However, the equality predicate must still search over possible $h_0$ values
+implicitly, so the constant factor is larger.
+\end{remark}
+
 \subsection{Adaptive threshold}
 \label{sec:adaptive}
 

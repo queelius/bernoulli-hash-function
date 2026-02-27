@@ -42,44 +42,51 @@ distribution with parameter $p$ (where $p = p_{\mathrm{eq}}$ or
 $p = p_{\mathrm{th}}$).
 
 Let $\RV{Q} \sim \geodist(p)$ be the trial at which the first success occurs.
-The salt bit length is $\RV{N} \approx \log_2 \RV{Q}$ (a slight overestimate
-from dropping the floor).
+The salt bit length is $\RV{L} = \lfloor \log_2 \RV{Q} \rfloor$.
 
-We approximate $\Expect{\RV{N}}$ via a second-order Taylor expansion of
-$\log_2$ around $\Expect{\RV{Q}}$:
+We bound $\Expect{\RV{L}}$ using the exact formula from
+\cref{thm:expected_size}:
 \begin{equation}
-    \Expect{\RV{N}} \approx \log_2 \Expect{\RV{Q}}
-        - \frac{\log_2 e}{\Expect{\RV{Q}}} \Var{\RV{Q}}\,.
+    \Expect{\RV{L}} = \sum_{n=1}^{\infty} q^{2^n - 1}
+    = q + q^3 + q^7 + q^{15} + \cdots\,,
 \end{equation}
-For $\RV{Q} \sim \geodist(p)$, $\Expect{\RV{Q}} = 1/p$ and
-$\Var{\RV{Q}} = (1-p)/p^2$.
-Substituting:
+where $q = 1 - p$.
+To extract the leading-order behavior, note that
+$\lfloor \log_2 x \rfloor \leq \log_2 x$ for all $x \geq 1$, so
 \begin{equation}
-    \Expect{\RV{N}} \approx -\log_2 p + (1 - 1/p) \log_2 e\,.
+    \Expect{\RV{L}} \leq \Expect{\log_2 \RV{Q}}
+    \leq \log_2 \Expect{\RV{Q}} = -\log_2 p\,,
 \end{equation}
+where the second inequality is Jensen's (since $\log_2$ is concave).
+For the lower bound, $\lfloor \log_2 x \rfloor \geq \log_2 x - 1$, so
+\begin{equation}
+    \Expect{\RV{L}} \geq \Expect{\log_2 \RV{Q}} - 1\,.
+\end{equation}
+Since $\RV{Q} \sim \geodist(p)$,
+$\Expect{\log_2 \RV{Q}} = -\log_2 p - (\log_2 e)(1 - p)\log(1 - p)/p
+\to -\log_2 p$ as $p \to 0$,
+so $\Expect{\RV{L}} = -\log_2 p + \mathcal{O}(1)$.
 
 \paragraph{Equality predicate.}
 With $p = \fprate^{m-1}/2^{m\mu}$:
-\begin{align}
-    \Expect{\RV{N}}
-        &\approx -(m-1)\log_2 \fprate + m\mu
-            + (1 - \fprate^{-(m-1)} 2^{m\mu}) \log_2 e\,.
-\end{align}
+\begin{equation}
+    \Expect{\RV{L}}
+        = -(m-1)\log_2 \fprate + m\mu + \mathcal{O}(1)\,.
+\end{equation}
 Dividing by $m$ and taking $m \to \infty$:
 \begin{equation}
-    \frac{\Expect{\RV{N}}}{m} \to -\log_2 \fprate + \mu\,.
+    \frac{\Expect{\RV{L}}}{m} \to -\log_2 \fprate + \mu\,.
 \end{equation}
 
 \paragraph{Threshold predicate.}
 With $p = \fprate^{m}/2^{m\mu}$:
-\begin{align}
-    \Expect{\RV{N}}
-        &\approx -m\log_2 \fprate + m\mu
-            + (1 - \fprate^{-m} 2^{m\mu}) \log_2 e\,.
-\end{align}
+\begin{equation}
+    \Expect{\RV{L}}
+        = -m\log_2 \fprate + m\mu + \mathcal{O}(1)\,.
+\end{equation}
 Dividing by $m$ and taking $m \to \infty$:
 \begin{equation}
-    \frac{\Expect{\RV{N}}}{m} \to -\log_2 \fprate + \mu\,.
+    \frac{\Expect{\RV{L}}}{m} \to -\log_2 \fprate + \mu\,.
 \end{equation}
 In both cases, the expected bits per element converges to the information-theoretic lower bound $-\log_2 \fprate + \mu$.
 \end{proof}
@@ -99,7 +106,7 @@ Set $\mu = 0$ in \cref{thm:space}.
 
 For finite $m$, the exact bits per element are:
 \begin{equation}
-    \frac{\Expect{\RV{N}}}{m} =
+    \frac{\Expect{\RV{L}}}{m} =
     \begin{cases}
         -\dfrac{m-1}{m}\log_2 \fprate + \mu + \mathcal{O}(1/m)
             & \text{(equality)}\,,\\[8pt]
@@ -160,20 +167,23 @@ $m \to \infty$ for any fixed $N$.
 
 \begin{remark}[Why zero per-element cost does not violate the lower bound]
 \label{rem:lb_not_violated}
-The information-theoretic lower bound of $-\log_2 \fprate + \mu$ bits per
-element assumes a \emph{fixed, predetermined} false positive rate $\fprate$.
-The adaptive threshold does not fix $\fprate$---it is a random variable
-(\cref{thm:fpr_distribution}).
-The lower bound applies to the \emph{worst-case} FPR realization, not to
-the expected FPR.
-More precisely, the adaptive threshold trades FPR
-\emph{predictability} for space savings: instead of guaranteeing
-$\fprate = \epsilon^{*}$, it guarantees only
-$\Expect{\fprate} = p/(m+1) \approx \epsilon^{*}$, with the actual FPR
-drawn from a $\betadist(p, m - p + 1)$ distribution whose variance is
-$\mathcal{O}(1/m)$.
-The ``missing'' $m(-\log_2\fprate)$ bits of information are encoded in the
-randomness of $\fprate$ itself.
+The information-theoretic lower bound~\cite{carter1978} requires a
+\emph{worst-case guarantee}: for every non-member $x \notin \Set{S}$, the data
+structure must ensure $\Prob{x \in \ASet{S}} \leq \fprate$ for a
+\emph{predetermined} $\fprate$.
+The adaptive threshold does not satisfy this hypothesis: the FPR is a random
+variable $\fprate \sim \betadist(p, m - p + 1)$ that depends on the data and
+the hash function.
+No worst-case bound on $\fprate$ is guaranteed before construction.
+
+More precisely, the adaptive threshold provides a \emph{distributional}
+guarantee---$\Expect{\fprate} = p/(m+1)$---rather than a deterministic one.
+Since the hypothesis of the lower bound theorem is not satisfied, the theorem
+does not apply, and the $\mathcal{O}(\log N / m) \to 0$ per-element cost is
+not a contradiction.
+The ``missing'' $m(-\log_2 \fprate)$ bits of information are encoded in the
+randomness of $\fprate$ itself: the data structure trades FPR predictability
+for space savings.
 \end{remark}
 
 \Cref{fig:space_comparison} compares the per-element space cost across the

@@ -15,7 +15,7 @@
         $\mu$ is the mean value encoding length.
     }
     \KwOut{
-        A random bit length $n$ of an BHF encoding.
+        A random bit length $n$ of a BHF encoding.
     }
     \func{\sampler{$m$, $\fprate$, $\mu$}}{
         Draw a random set $\Set{S}$ of $m$ elements from $\cisb$\;
@@ -30,10 +30,10 @@
 
 \begin{theorem}[PMF of the random bit length]
 \label{thm:pmf_detailed}
-The random bit length $\RV{N}$ of the salt $b$ has the probability mass
+The random bit length $\RV{L}$ of the salt $b$ has the probability mass
 function
 \begin{equation}
-    \PDF{n \Given m, \fprate, \mu}[\RV{N}]
+    \PDF{n \Given m, \fprate, \mu}[\RV{L}]
     = q^{2^n - 1}\!\left(1 - q^{2^n}\right)\,,
 \end{equation}
 where $q = 1 - p$ and $p$ is the per-trial success probability.
@@ -44,7 +44,7 @@ $p$.
 The algorithm tests candidates in order of increasing bit length, with $2^n$
 candidates of length $n$.
 
-For $\RV{N} = n$ to occur:
+For $\RV{L} = n$ to occur:
 \begin{enumerate}
     \item All $2^n - 1$ candidates of length $< n$ must fail.
     Each fails independently with probability $q = 1 - p$, so the joint
@@ -54,7 +54,7 @@ For $\RV{N} = n$ to occur:
     All $2^n$ candidates of length $n$ fail with probability $q^{2^n}$, so
     the complementary probability is $1 - q^{2^n}$.
 \end{enumerate}
-By independence, $\Prob{\RV{N} = n} = q^{2^n - 1}(1 - q^{2^n})$.
+By independence, $\Prob{\RV{L} = n} = q^{2^n - 1}(1 - q^{2^n})$.
 
 \paragraph{Verification that this is a valid PMF.}
 The sum telescopes:
@@ -66,10 +66,10 @@ The sum telescopes:
 \end{align}
 
 \paragraph{Alternative derivation.}
-Since $\RV{N} = \lfloor \log_2 \RV{Q} \rfloor$ where
+Since $\RV{L} = \lfloor \log_2 \RV{Q} \rfloor$ where
 $\RV{Q} \sim \geodist(p)$:
 \begin{align}
-    \Prob{\RV{N} = n}
+    \Prob{\RV{L} = n}
     &= \Prob{2^n \leq \RV{Q} < 2^{n+1}} \\
     &= \sum_{j=2^n}^{2^{n+1}-1} p(1-p)^{j-1} \\
     &= p \cdot \frac{q^{2^n - 1} - q^{2^{n+1} - 1}}{1 - q}
@@ -81,20 +81,20 @@ $\RV{Q} \sim \geodist(p)$:
 \label{thm:expected_size}
 The expected salt bit length is
 \begin{equation}
-    \Expect{\RV{N}} = \sum_{n=1}^{\infty} q^{2^n - 1}
+    \Expect{\RV{L}} = \sum_{n=1}^{\infty} q^{2^n - 1}
     = q + q^3 + q^7 + q^{15} + \cdots\,,
 \end{equation}
 where $q = 1 - p$.
 \end{theorem}
 \begin{proof}
 \begin{align}
-    \Expect{\RV{N}}
+    \Expect{\RV{L}}
     &= \sum_{n=0}^{\infty} n\, q^{2^n - 1}(1 - q^{2^n}) \\
     &= \sum_{n=0}^{\infty} n\left(q^{2^n - 1} - q^{2^{n+1} - 1}\right)\,.
 \end{align}
 Expanding the first few terms:
 \begin{align}
-    \Expect{\RV{N}}
+    \Expect{\RV{L}}
     &= 0 \cdot (1 - q) + 1 \cdot (q - q^3)
         + 2 \cdot (q^3 - q^7) + 3 \cdot (q^7 - q^{15}) + \cdots \\
     &= q + q^3 + q^7 + q^{15} + \cdots
@@ -105,84 +105,59 @@ Expanding the first few terms:
 \section{Adaptive threshold PMF derivation}
 \label{sec:adaptive_pmf_derivation}
 
-We derive the exact PMF of the threshold $T = \OS{p}{m}$ stated in
+We derive the PMF of the threshold $T = \OS{p}{m}$ stated in
 \cref{thm:fpr_distribution}.
+In the BHF setting, the modulus $N$ satisfies $N \gg m$, so the probability
+of ties among the $m$ residues is $\mathcal{O}(m^2/N)$ and is negligible.
+We derive the PMF under the assumption that all $m$ residues are distinct.
 
 \begin{theorem}[PMF of the $p$-th order statistic from discrete uniform draws]
 \label{thm:os_pmf_detailed}
-Let $R_1,\ldots,R_m$ be i.i.d.\ $\operatorname{Uniform}\{0,1,\ldots,N-1\}$,
-and let $\OS{p}{m}$ denote the $p$-th order statistic.
-Then
+Let $R_1,\ldots,R_m$ be i.i.d.\ $\operatorname{Uniform}\{0,1,\ldots,N-1\}$.
+In the regime $N \gg m$ (so that ties are negligible), the $p$-th order
+statistic $\OS{p}{m}$ has the probability mass function
 \begin{equation}
 \label{eq:os_pmf_detailed}
     \Prob{\OS{p}{m} = j}
-    \;=\; \frac{1}{N}\,\frac{m!}{(p-1)!(m-p)!}
-    \sum_{i=0}^{\min(p-1,\, j)}
-    \sum_{k=0}^{\min(m-p,\, N-1-j)}
-    \frac{(-1)^{i+k}\binom{p-1}{i}\binom{m-p}{k}}
-    {\binom{j}{p-1-i}\binom{N-1-j}{m-p-k}}^{-1}\,,
-\end{equation}
-which simplifies, by the Vandermonde identity, to the closed form
-\begin{equation}
-    \Prob{\OS{p}{m} = j}
     \;=\; \frac{\binom{j}{p-1}\binom{N-1-j}{m-p}}{\binom{N-1}{m-1}}
     \cdot \frac{m}{N}\,,
+    \quad j = p-1, p, \ldots, N-1-(m-p)\,.
 \end{equation}
-for $j = p-1, p, \ldots, N-1-(m-p)$.
 \end{theorem}
 \begin{proof}
-The event $\{\OS{p}{m} = j\}$ requires:
+We count the event $\{\OS{p}{m} = j\}$ by a direct combinatorial argument.
+Since ties are negligible, we treat the $m$ residues as drawn without
+replacement from $\{0,\ldots,N-1\}$.
+
+The event requires:
 \begin{enumerate}
-    \item Exactly one of the $m$ draws equals $j$ \emph{and} is the $p$-th
-    smallest.
-    \item Exactly $p - 1$ of the remaining $m - 1$ draws fall in
+    \item Exactly one residue equals $j$ (this is the $p$-th smallest).
+    \item Exactly $p - 1$ of the remaining $m - 1$ residues fall in
     $\{0,\ldots,j-1\}$.
-    \item The remaining $m - p$ draws fall in $\{j+1,\ldots,N-1\}$.
+    \item The remaining $m - p$ residues fall in $\{j+1,\ldots,N-1\}$.
 \end{enumerate}
 
-There are $m$ choices for which draw equals $j$.
-The probability that a single draw equals $j$ is $1/N$.
-Given this, the remaining $m-1$ draws are i.i.d.\ on $\{0,\ldots,N-1\}$.
-We need exactly $p - 1$ of them to fall in $\{0,\ldots,j-1\}$ (probability
-$j/N$ each) and the remaining $m - p$ to fall in $\{j+1,\ldots,N-1\}$
-(probability $(N - 1 - j)/N$ each).
-By the multinomial theorem:
-\begin{align}
-    \Prob{\OS{p}{m} = j}
-    &= m \cdot \frac{1}{N} \cdot \binom{m-1}{p-1}
-       \left(\frac{j}{N}\right)^{p-1}
-       \left(\frac{N-1-j}{N}\right)^{m-p} \\
-    &= \frac{m}{N}\,\binom{m-1}{p-1}
-       \left(\frac{j}{N}\right)^{p-1}
-       \left(\frac{N-1-j}{N}\right)^{m-p}\,.
-\end{align}
-
-Wait---this is the continuous-approximation version (when draws are
-\emph{distinct} with high probability).
-For the exact discrete case with possible ties, the correct derivation uses
-the discrete order statistic formula directly.
-
-For $N \gg m$ (so ties have negligible probability), we can also use
-the combinatorial counting argument: among $\binom{N}{m}$ equally likely
-multisets, the number with $p$-th smallest element equal to $j$ is obtained
-by choosing $p - 1$ values from $\{0,\ldots,j-1\}$ and $m - p$ values from
-$\{j+1,\ldots,N-1\}$, but without replacement (since the random oracle
-makes collisions negligible for $N \gg m$).
-This gives
+There are $m$ choices for which draw equals $j$, each with probability $1/N$.
+Among the remaining $m - 1$ residues, we choose $p - 1$ positions from the $j$
+values in $\{0,\ldots,j-1\}$ and $m - p$ positions from the $N - 1 - j$ values
+in $\{j+1,\ldots,N-1\}$.
+The number of such configurations, divided by the total number of ways to place
+$m - 1$ residues among the $N - 1$ remaining values, gives:
 \begin{equation}
     \Prob{\OS{p}{m} = j}
-    = \frac{\binom{j}{p-1}\binom{N-1-j}{m-p}}{\binom{N-1}{m-1}}
-      \cdot \frac{m}{N}\,.
+    \;=\; m \cdot \frac{1}{N} \cdot
+    \frac{\binom{j}{p-1}\binom{N-1-j}{m-p}}{\binom{N-1}{m-1}}\,.
 \end{equation}
 
 \paragraph{Continuous limit.}
-Setting $x = j/N$ and taking $N \to \infty$:
-\begin{align}
+Setting $x = (j+1)/N$ and letting $N \to \infty$ with $m$ fixed, the
+binomial coefficients converge to Beta functions via Stirling's approximation.
+In particular, the CDF converges to the regularized incomplete Beta function:
+\begin{equation}
     \Prob{\OS{p}{m} \leq xN}
-    &\;\to\;\
-    I_x(p, m - p + 1)\,,
-\end{align}
-where $I_x$ is the regularized incomplete Beta function.
+    \;\to\; I_x(p,\; m - p + 1)\,,
+\end{equation}
+where $I_x(\alpha, \beta)$ is the regularized incomplete Beta function.
 Differentiating with respect to $x$ yields the $\betadist(p, m - p + 1)$
 density, confirming \cref{eq:fpr_beta}.
 \end{proof}

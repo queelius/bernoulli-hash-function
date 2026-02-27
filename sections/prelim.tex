@@ -31,8 +31,8 @@ bit strings to fixed-length bit strings of length $n$.
 \begin{definition}[Random oracle]
 \label{def:randomoracle}
 A \emph{random oracle} $\ro \colon \cisb \to \cisbn{\infty}$ is a theoretical
-hash function whose output is uniformly distributed over its range for every
-unique input.
+hash function whose outputs are independent and uniformly distributed over its
+range for every distinct input.
 For any prefix length $k$, the first $k$ bits of $\ro(x)$ are uniformly
 distributed over $\cisbn{k}$.
 \end{definition}
@@ -66,14 +66,14 @@ A Bernoulli set with $\fprate = 0$ is a \emph{negative} Bernoulli set,
 denoted $\NASet{S}$.
 \end{definition}
 
-\begin{postulate}[Space lower bound for sets]
+\begin{theorem}[Space lower bound for sets {\cite{carter1978}}]
 \label{post:set_lb}
 The optimal space complexity for a Bernoulli set over a countably infinite
 universe is
 \begin{equation}
     -(1 - \fnrate) \log_2 \fprate \;\; \si{bits \per element}\,.
 \end{equation}
-\end{postulate}
+\end{theorem}
 
 \subsection{Bernoulli maps}
 \label{sec:prelim_bmap}
@@ -96,14 +96,14 @@ $\fprate$ and false negative rate $\fnrate$ satisfies:
 \end{enumerate}
 \end{definition}
 
-\begin{postulate}[Space lower bound for maps]
+\begin{theorem}[Space lower bound for maps {\cite{carter1978}}]
 \label{post:map_lb}
 The optimal space complexity for a Bernoulli map over a countably infinite key
 universe, with mean value encoding length $\mu$ bits, is
 \begin{equation}
     -(1 - \fnrate) \log_2 \fprate + (1-\fnrate)\mu \;\; \si{bits \per element}\,.
 \end{equation}
-\end{postulate}
+\end{theorem}
 
 \begin{remark}
 Setting $\mu = 0$ in \cref{post:map_lb} recovers the set lower bound

@@ -3,7 +3,7 @@ BIB      = bibtex
 MAIN     = main
 TEXFLAGS = -interaction=nonstopmode -halt-on-error
 
-SOURCES  = $(MAIN).tex defs.tex gloss.tex alex.sty references.bib \
+SOURCES  = $(MAIN).tex defs.tex alex.sty references.bib \
            $(wildcard sections/*.tex) $(wildcard img/*.tex)
 
 .PHONY: all draft clean cleanall watch wc help
