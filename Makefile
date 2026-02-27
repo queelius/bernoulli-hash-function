@@ -4,9 +4,10 @@ MAIN     = main
 TEXFLAGS = -interaction=nonstopmode -halt-on-error
 
 SOURCES  = $(MAIN).tex defs.tex alex.sty references.bib \
-           $(wildcard sections/*.tex) $(wildcard img/*.tex)
+           $(wildcard sections/*.tex) $(wildcard img/*.tex) \
+           $(wildcard data/*.csv)
 
-.PHONY: all draft clean cleanall watch wc help
+.PHONY: all draft clean cleanall watch wc sim help
 
 all: $(MAIN).pdf  ## Build the paper (full: pdflatex + bibtex + 2x pdflatex)
 
@@ -41,6 +42,9 @@ watch:  ## Rebuild on file changes (requires inotifywait)
 wc:  ## Estimate word count (body text only, via texcount)
 	@which texcount > /dev/null 2>&1 || { echo "Install texcount: sudo apt install texcount"; exit 1; }
 	@texcount -inc -total $(MAIN).tex
+
+sim:  ## Run Monte Carlo simulations
+	python3 code/price_of_certainty.py --seed 42 --outdir data/
 
 help:  ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*##' $(MAKEFILE_LIST) | \

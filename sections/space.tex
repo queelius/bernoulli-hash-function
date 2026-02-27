@@ -181,10 +181,131 @@ guarantee---$\Expect{\fprate} = p/(m+1)$---rather than a deterministic one.
 Since the hypothesis of the lower bound theorem is not satisfied, the theorem
 does not apply, and the $\mathcal{O}(\log N / m) \to 0$ per-element cost is
 not a contradiction.
-The ``missing'' $m(-\log_2 \fprate)$ bits of information are encoded in the
-randomness of $\fprate$ itself: the data structure trades FPR predictability
-for space savings.
+\Cref{thm:price_certainty} makes this precise: the ``missing'' bits equal
+exactly $m \log_2(1/\fprate)$, the cost of committing to a fixed FPR.
 \end{remark}
+
+\subsection{The price of FPR certainty}
+\label{sec:price_certainty}
+
+\Cref{rem:lb_not_violated} identifies FPR predictability as the source of
+the space gap between the fixed-threshold and adaptive-threshold BHF\@.
+We now make this precise.
+
+\begin{theorem}[Price of FPR certainty]
+\label{thm:price_certainty}
+Let $\Set{S}$ be a set of $m$ elements ($\mu = 0$), $\fprate^* > 0$ a target
+false positive rate, and $N$ a modulus with
+$\fprate^* = (t^*\!+1)/N$ for some integer $t^*$.
+\begin{enumerate}[(i)]
+    \item \textbf{Fixed-threshold BHF.}
+    The expected encoding length is
+    \begin{equation}
+    \label{eq:fixed_bits}
+        \Expect{\mathrm{BL}_{\mathrm{fixed}}}
+        = m \log_2(1/\fprate^*) + 2\lceil \log_2 N \rceil
+          + \mathcal{O}(1) \;\;\si{bits}\,,
+    \end{equation}
+    where the first term is the expected salt length
+    (\cref{thm:space}) and the second encodes $(N, t^*)$.
+
+    \item \textbf{Adaptive-threshold BHF.}
+    The encoding length is deterministic:
+    \begin{equation}
+    \label{eq:adaptive_bits_cert}
+        \mathrm{BL}_{\mathrm{adaptive}}
+        = 2\lceil \log_2 N \rceil \;\;\si{bits}\,.
+    \end{equation}
+
+    \item \textbf{The gap.}
+    \begin{equation}
+    \label{eq:gap}
+        \Delta(m, \fprate^*)
+        \;:=\; \Expect{\mathrm{BL}_{\mathrm{fixed}}}
+             - \mathrm{BL}_{\mathrm{adaptive}}
+        \;=\; m \log_2(1/\fprate^*) + \mathcal{O}(1)\,.
+    \end{equation}
+    Per element: $\Delta / m \;\to\; -\log_2 \fprate^*$ as $m \to \infty$.
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}
+Part~(i) follows from \cref{thm:space} with $\mu = 0$: the salt search is
+geometric with parameter $p_{\mathrm{th}} = (\fprate^*)^m$, giving expected
+salt length $\Expect{\RV{L}} = -\log_2 p_{\mathrm{th}} + \mathcal{O}(1)
+= m \log_2(1/\fprate^*) + \mathcal{O}(1)$.
+Adding $2\lceil \log_2 N \rceil$ bits for the parameters $(N, t^*)$ yields
+\cref{eq:fixed_bits}.
+
+Part~(ii) is \cref{thm:adaptive_space}: the adaptive BHF stores only
+$(N, t)$ with no salt, giving \cref{eq:adaptive_bits_cert}.
+
+Part~(iii): subtract \cref{eq:adaptive_bits_cert} from \cref{eq:fixed_bits}.
+The $2\lceil \log_2 N \rceil$ terms cancel, leaving
+$\Delta = m \log_2(1/\fprate^*) + \mathcal{O}(1)$.
+Dividing by $m$ gives $\Delta/m = \log_2(1/\fprate^*) + \mathcal{O}(1/m)
+\to -\log_2 \fprate^*$.
+\end{proof}
+
+\begin{remark}[Information-theoretic interpretation]
+\label{rem:info_interp}
+The salt is the index of the first success in a $\geodist(p)$ search over
+$\sim\!1/p$ candidate acceptance regions, each of density~$\fprate^*$.
+Its entropy is
+\begin{equation}
+    \Entropy(\RV{Q})
+    = \frac{-\log_2 p + (1-p)\log_2(1-p)/p}{\phantom{x}}
+    = -\log_2 p + \mathcal{O}(1)
+    = m \log_2(1/\fprate^*) + \mathcal{O}(1)\,,
+\end{equation}
+which matches the gap~$\Delta$.
+The salt answers the question: ``which of $\sim\!1/p$ possible
+$\fprate^*$-density regions contains all $m$ elements?''
+When the FPR is random (adaptive case), the data itself answers this
+question for free.
+Therefore $-\log_2 \fprate$ is the price of FPR \emph{certainty}, not of
+membership encoding.
+\end{remark}
+
+\Cref{fig:price_certainty} illustrates the gap $\Delta(m, \fprate^*)$
+growing linearly in $m$, with slope $\log_2(1/\fprate^*)$.
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.85\textwidth,
+    height=0.5\textwidth,
+    xlabel={number of elements $m$},
+    ylabel={gap $\Delta$ (bits)},
+    xmin=0, xmax=200,
+    ymin=0, ymax=1400,
+    legend style={at={(0.03,0.97)}, anchor=north west, font=\small},
+    grid=major,
+    grid style={gray!30},
+    every axis plot/.append style={thick},
+    title={Price of FPR certainty:
+           $\Delta(m,\fprate^*) = m\log_2(1/\fprate^*)$}
+]
+
+% eps = 0.01: slope = log2(100) ≈ 6.644
+\addplot[blue, domain=0:200, samples=100] {x * 6.644};
+\addlegendentry{$\fprate^* = 0.01$ (slope $\approx 6.64$)}
+
+% eps = 0.1: slope = log2(10) ≈ 3.322
+\addplot[red, domain=0:200, samples=100] {x * 3.322};
+\addlegendentry{$\fprate^* = 0.1\phantom{0}$ (slope $\approx 3.32$)}
+
+\end{axis}
+\end{tikzpicture}
+\caption{The gap $\Delta(m, \fprate^*) =
+    \Expect{\mathrm{BL}_{\mathrm{fixed}}} - \mathrm{BL}_{\mathrm{adaptive}}$
+    grows linearly in~$m$ with slope $\log_2(1/\fprate^*)$.
+    This gap \emph{is} the classical $-\log_2\fprate$ lower bound: it
+    represents the cost of committing to a fixed FPR rather than allowing
+    it to be random.}
+\label{fig:price_certainty}
+\end{figure}
 
 \Cref{fig:space_comparison} compares the per-element space cost across the
 three predicates.
