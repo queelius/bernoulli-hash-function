@@ -15,6 +15,10 @@ Key results:
 - **Information-theoretic optimality**: achieves the space lower bound of `−log₂ε + μ` bits per element.
 - **Maximum entropy**: the salt is drawn from the distribution that maximizes entropy subject to the space constraint.
 
+## Key Conceptual Distinction
+
+**Model order vs. parameter count**: The BHF satisfies the Bernoulli axioms, so its error behaviour is fully characterized by 2 parameters (FPR and FNR) regardless of how many hash evaluations are composed internally. Element-wise independence forces the joint confusion matrix of multiple tests to factor as a Kronecker product, so composing BHF instances (e.g., via set union) yields tractable formulas with linearly many parameters, not exponentially many. See `bernoulli_sets/` Remark on parametric parsimony.
+
 ## Companion Papers
 
 This paper cites but does not re-derive the Bernoulli set/map ADT definitions:
